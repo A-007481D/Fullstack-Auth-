@@ -1,0 +1,43 @@
+# ========================
+# OS & Editor
+# ========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ========================
+# Laravel (backend/)
+# ========================
+backend/vendor/
+backend/.env
+backend/storage/logs/*.log
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/
+backend/.phpunit.result.cache
+backend/coverage/
+
+# ========================
+# Next.js (frontend/)
+# ========================
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.*.local
+frontend/out/
+
+# ========================
+# Docker / Infrastructure
+# ========================
+docker/postgres-data/
+*.log
+
+# ========================
+# Misc
+# ========================
+*.zip
+*.tar.gz
