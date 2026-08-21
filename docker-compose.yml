@@ -51,6 +51,7 @@ services:
       APP_ENV:      local
       APP_DEBUG:    "true"
       APP_URL:      http://localhost:8000
+      APP_KEY:      base64:PDIIUb9jyK6G5fS7vEDb/JAJ02/HboyZ6y1KFC1ifFA=
 
       DB_CONNECTION: pgsql
       DB_HOST:       postgres         # Service name = hostname in Docker network

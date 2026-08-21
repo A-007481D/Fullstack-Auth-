@@ -22,6 +22,8 @@ export default function ClientDashboardPage() {
   const [showForm,    setShowForm]    = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [formData,    setFormData]    = useState({ title: '', description: '' })
+  const [editMode,    setEditMode]    = useState(false)
+  const [editFormData, setEditFormData] = useState({ title: '', description: '' })
   const [formError,   setFormError]   = useState<string | null>(null)
   const [saving,      setSaving]      = useState(false)
 
@@ -52,6 +54,25 @@ export default function ClientDashboardPage() {
       fetchTasks()
     } catch (err: any) {
       setFormError(err.response?.data?.message ?? 'Failed to create task.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedTask) return
+    setSaving(true)
+    try {
+      await apiClient.patch(`/tasks/${selectedTask.id}`, {
+        title:       editFormData.title,
+        description: editFormData.description || null,
+      })
+      setEditMode(false)
+      setSelectedTask(null)
+      fetchTasks()
+    } catch (err: any) {
+      alert(err.response?.data?.message ?? 'Failed to update task.')
     } finally {
       setSaving(false)
     }
@@ -132,28 +153,55 @@ export default function ClientDashboardPage() {
           {/* Task detail modal */}
           {selectedTask && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-              onClick={() => setSelectedTask(null)}>
+              onClick={() => { setSelectedTask(null); setEditMode(false); }}>
               <div className="card w-full max-w-lg animate-slide-in" onClick={e => e.stopPropagation()}>
-                <div className="flex items-start justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-white">{selectedTask.title}</h2>
-                  <span className={`badge ${statusColors[selectedTask.status]}`}>
-                    {selectedTask.status.replace('_', ' ')}
-                  </span>
-                </div>
-                {selectedTask.description && (
-                  <p className="text-gray-300 text-sm mb-4">{selectedTask.description}</p>
+                {!editMode ? (
+                  <>
+                    <div className="flex items-start justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-white">{selectedTask.title}</h2>
+                      <span className={`badge ${statusColors[selectedTask.status]}`}>
+                        {selectedTask.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                    {selectedTask.description && (
+                      <p className="text-gray-300 text-sm mb-4 whitespace-pre-wrap">{selectedTask.description}</p>
+                    )}
+                    <div className="border-t border-gray-800 pt-4 space-y-2 text-sm mb-5">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Assigned worker</span>
+                        <span className="text-white">{selectedTask.worker?.name ?? 'Not yet assigned'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Created</span>
+                        <span className="text-white">{new Date(selectedTask.created_at).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => { setEditFormData({ title: selectedTask.title, description: selectedTask.description || '' }); setEditMode(true); }} className="btn-primary flex-1">Edit Request</button>
+                      <button onClick={() => setSelectedTask(null)} className="btn-secondary flex-1">Close</button>
+                    </div>
+                  </>
+                ) : (
+                  <form onSubmit={handleUpdateTask} className="space-y-4">
+                    <h2 className="text-lg font-semibold text-white mb-4">Edit Task Request</h2>
+                    <div>
+                      <label className="label">Task Title</label>
+                      <input className="input" value={editFormData.title} required
+                        onChange={e => setEditFormData(p => ({ ...p, title: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="label">Details (optional)</label>
+                      <textarea className="input min-h-24 resize-none" value={editFormData.description}
+                        onChange={e => setEditFormData(p => ({ ...p, description: e.target.value }))} />
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button type="submit" disabled={saving} className="btn-primary flex-1">
+                        {saving ? 'Saving...' : 'Save Changes'}
+                      </button>
+                      <button type="button" onClick={() => setEditMode(false)} className="btn-secondary flex-1">Cancel</button>
+                    </div>
+                  </form>
                 )}
-                <div className="border-t border-gray-800 pt-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Assigned worker</span>
-                    <span className="text-white">{selectedTask.worker?.name ?? 'Not yet assigned'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Created</span>
-                    <span className="text-white">{new Date(selectedTask.created_at).toLocaleString()}</span>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedTask(null)} className="btn-secondary w-full mt-5">Close</button>
               </div>
             </div>
           )}

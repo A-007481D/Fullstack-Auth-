@@ -160,23 +160,20 @@ export default function WorkerDashboardPage() {
 
                 {/* Status update inside modal too */}
                 <div className="mt-5 pt-4 border-t border-gray-800">
-                  <label className="label">Update Status</label>
-                  <div className="flex gap-2">
+                  <label className="label mb-2">Update Status</label>
+                  <select
+                    value={selectedTask.status}
+                    disabled={updatingId === selectedTask.id}
+                    onChange={e => handleStatusChange(selectedTask.id, e.target.value as TaskStatus)}
+                    className="input py-2 w-full"
+                  >
                     {STATUS_OPTIONS.map(opt => (
-                      <button
-                        key={opt.value}
-                        onClick={() => handleStatusChange(selectedTask.id, opt.value)}
-                        disabled={selectedTask.status === opt.value || updatingId === selectedTask.id}
-                        className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${
-                          selectedTask.status === opt.value
-                            ? 'bg-brand-600/20 border-brand-600/50 text-brand-300'
-                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-200'
-                        } disabled:opacity-50`}
-                      >
-                        {opt.label}
-                      </button>
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
-                  </div>
+                  </select>
+                  {updatingId === selectedTask.id && (
+                    <p className="text-xs text-brand-400 mt-2">Saving...</p>
+                  )}
                 </div>
 
                 <button onClick={() => setSelectedTask(null)} className="btn-secondary w-full mt-4">Close</button>

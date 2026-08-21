@@ -71,7 +71,7 @@ export default function DashboardLayout({ children, navItems, title }: Dashboard
 
         {/* User section */}
         <div className="px-3 py-4 border-t border-gray-800">
-          <div className="flex items-center gap-3 px-3 py-2 mb-2">
+          <Link href="/dashboard/profile" className="flex items-center gap-3 px-3 py-2 mb-2 rounded-lg hover:bg-gray-800 transition-colors">
             <div className="w-8 h-8 bg-brand-700 rounded-full flex items-center justify-center text-white text-sm font-semibold">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
@@ -80,7 +80,7 @@ export default function DashboardLayout({ children, navItems, title }: Dashboard
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
             <span className={`badge badge-${user?.role}`}>{user?.role}</span>
-          </div>
+          </Link>
           <button
             onClick={handleLogout}
             disabled={isLoading}

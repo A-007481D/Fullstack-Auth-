@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 /*
@@ -62,6 +63,17 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'message' => 'Forbidden. You do not have permission to perform this action.',
             ], 403);
+        });
+
+        /*
+         * Transform Eloquent model-not-found into a clean 404 JSON response.
+         * Without this, APP_DEBUG=true would expose a stack trace.
+         */
+        $exceptions->render(function (ModelNotFoundException $e, Request $request) {
+            $model = class_basename($e->getModel());
+            return response()->json([
+                'message' => "{$model} not found.",
+            ], 404);
         });
     })
     ->create();
