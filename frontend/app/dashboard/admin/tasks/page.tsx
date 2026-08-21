@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react'
 import DashboardLayout from '@/components/layout/dashboard-layout'
 import AuthGuard from '@/components/auth-guard'
 import apiClient from '@/lib/api'
+import { KanbanBoard } from '@/components/ui/kanban-board'
+import { SlideOver } from '@/components/ui/slide-over'
 import type { Task, User, TasksResponse, UsersResponse } from '@/types'
 
 const UsersIcon = () => (
@@ -31,8 +33,10 @@ export default function AdminTasksPage() {
   const [workers,   setWorkers]   = useState<User[]>([])
   const [clients,   setClients]   = useState<User[]>([])
   const [loading,   setLoading]   = useState(true)
+  
   const [showForm,  setShowForm]  = useState(false)
   const [editTask,  setEditTask]  = useState<Task | null>(null)
+  
   const [formData,  setFormData]  = useState({
     title: '', description: '', status: 'pending', client_id: '', worker_id: ''
   })
@@ -80,6 +84,7 @@ export default function AdminTasksPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this task?')) return
     await apiClient.delete(`/tasks/${id}`)
+    setShowForm(false)
     fetchAll()
   }
 
@@ -112,110 +117,95 @@ export default function AdminTasksPage() {
   return (
     <AuthGuard allowedRoles={['admin']}>
       <DashboardLayout navItems={navItems} title="Admin Panel">
-        <div className="animate-slide-in">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="page-title">Task Management</h1>
-              <p className="page-subtitle">View, create, and assign all tasks</p>
+        <div className="animate-slide-in h-[calc(100vh-8rem)]">
+          
+          {loading ? (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="w-5 h-5 border-2 border-gray-600 border-t-gray-400 rounded-full animate-spin mr-3" />
+              Loading tasks...
             </div>
-            <button onClick={openCreate} className="btn-primary">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Task
-            </button>
-          </div>
-
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr><th>Title</th><th>Status</th><th>Client</th><th>Worker</th><th>Created</th><th>Actions</th></tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-gray-500">Loading tasks...</td></tr>
-                ) : tasks.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-gray-500">No tasks yet.</td></tr>
-                ) : tasks.map((task) => (
-                  <tr key={task.id}>
-                    <td className="font-medium text-white max-w-xs">
-                      <p className="truncate">{task.title}</p>
-                      {task.description && <p className="text-xs text-gray-500 truncate">{task.description}</p>}
-                    </td>
-                    <td><span className={`badge badge-${task.status}`}>{task.status.replace('_', ' ')}</span></td>
-                    <td className="text-sm">{task.client?.name ?? `Client #${task.client_id}`}</td>
-                    <td className="text-sm">{task.worker?.name ?? <span className="text-gray-600">Unassigned</span>}</td>
-                    <td className="text-sm text-gray-500">{new Date(task.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button onClick={() => openEdit(task)} className="btn-secondary text-xs px-2 py-1">Edit</button>
-                        <button onClick={() => handleDelete(task.id)} className="btn-danger text-xs px-2 py-1">Delete</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Task modal */}
-          {showForm && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="card w-full max-w-lg animate-slide-in">
-                <h2 className="text-lg font-semibold text-white mb-5">
-                  {editTask ? 'Edit Task' : 'Create Task'}
-                </h2>
-                {formError && (
-                  <div className="mb-4 p-3 bg-red-900/30 border border-red-700/50 rounded-lg text-red-300 text-sm">{formError}</div>
-                )}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="label">Title</label>
-                    <input className="input" value={formData.title}
-                      onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} required />
-                  </div>
-                  <div>
-                    <label className="label">Description</label>
-                    <textarea className="input min-h-20 resize-none" value={formData.description}
-                      onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="label">Status</label>
-                      <select className="input" value={formData.status}
-                        onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}>
-                        {STATUS_OPTIONS.map(s => (
-                          <option key={s} value={s}>{s.replace('_', ' ')}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="label">Assign Worker</label>
-                      <select className="input" value={formData.worker_id}
-                        onChange={e => setFormData(p => ({ ...p, worker_id: e.target.value }))}>
-                        <option value="">Unassigned</option>
-                        {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="label">Client</label>
-                    <select className="input" value={formData.client_id}
-                      onChange={e => setFormData(p => ({ ...p, client_id: e.target.value }))} required={!editTask}>
-                      <option value="">Select client...</option>
-                      {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex gap-3 pt-2">
-                    <button type="submit" disabled={saving} className="btn-primary flex-1">
-                      {saving ? 'Saving...' : (editTask ? 'Update Task' : 'Create Task')}
-                    </button>
-                    <button type="button" onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancel</button>
-                  </div>
-                </form>
-              </div>
-            </div>
+          ) : (
+            <KanbanBoard 
+              tasks={tasks} 
+              onTaskClick={openEdit} 
+              onNewTaskClick={openCreate} 
+            />
           )}
+
+          <SlideOver 
+            isOpen={showForm} 
+            onClose={() => setShowForm(false)} 
+            title={editTask ? 'Edit Task' : 'New Task'}
+          >
+            {formError && (
+              <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{formError}</div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="label">Title</label>
+                <input className="input" value={formData.title}
+                  onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} required />
+              </div>
+              
+              <div>
+                <label className="label">Description</label>
+                <textarea className="input min-h-[120px] resize-none" value={formData.description}
+                  onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} />
+              </div>
+              
+              <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl space-y-4">
+                <div>
+                  <label className="label">Status</label>
+                  <select className="input" value={formData.status}
+                    onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}>
+                    {STATUS_OPTIONS.map(s => (
+                      <option key={s} value={s} className="bg-gray-900">{s.replace('_', ' ')}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="label">Assign Worker</label>
+                  <select className="input" value={formData.worker_id}
+                    onChange={e => setFormData(p => ({ ...p, worker_id: e.target.value }))}>
+                    <option value="" className="bg-gray-900">Unassigned</option>
+                    {workers.map(w => <option key={w.id} value={w.id} className="bg-gray-900">{w.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="label">Client</label>
+                  <select className="input" value={formData.client_id}
+                    onChange={e => setFormData(p => ({ ...p, client_id: e.target.value }))} required={!editTask}>
+                    <option value="" className="bg-gray-900">Select client...</option>
+                    {clients.map(c => <option key={c.id} value={c.id} className="bg-gray-900">{c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-white/[0.06] flex items-center justify-between">
+                {editTask && (
+                  <button 
+                    type="button" 
+                    onClick={() => handleDelete(editTask.id)} 
+                    className="btn-danger"
+                  >
+                    Delete
+                  </button>
+                )}
+                
+                <div className="flex gap-3 ml-auto">
+                  <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={saving} className="btn-primary">
+                    {saving ? 'Saving...' : (editTask ? 'Save Changes' : 'Create Task')}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </SlideOver>
+
         </div>
       </DashboardLayout>
     </AuthGuard>

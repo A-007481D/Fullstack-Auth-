@@ -5,6 +5,8 @@ import DashboardLayout from '@/components/layout/dashboard-layout'
 import AuthGuard from '@/components/auth-guard'
 import apiClient from '@/lib/api'
 import { useAuthStore } from '@/lib/auth-store'
+import { KanbanBoard } from '@/components/ui/kanban-board'
+import { SlideOver } from '@/components/ui/slide-over'
 import type { Task, TasksResponse, TaskStatus } from '@/types'
 
 const TasksIcon = () => (
@@ -40,16 +42,10 @@ export default function WorkerDashboardPage() {
 
   useEffect(() => { fetchTasks() }, [fetchTasks])
 
-  /**
-   * Workers can ONLY update the status field.
-   * The backend enforces this — even if we sent other fields, they'd be stripped.
-   * But we only send 'status' here to be correct at the API call level too.
-   */
   const handleStatusChange = async (taskId: number, newStatus: TaskStatus) => {
     setUpdatingId(taskId)
     try {
       await apiClient.patch(`/tasks/${taskId}`, { status: newStatus })
-      // Update local state immediately for snappy UX
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t))
       if (selectedTask?.id === taskId) {
         setSelectedTask(prev => prev ? { ...prev, status: newStatus } : null)
@@ -70,116 +66,91 @@ export default function WorkerDashboardPage() {
   return (
     <AuthGuard allowedRoles={['worker']}>
       <DashboardLayout navItems={navItems} title="Worker Portal">
-        <div className="animate-slide-in">
-          <div className="mb-6">
-            <h1 className="page-title">Assigned Tasks</h1>
-            <p className="page-subtitle">
-              Hello, {user?.name}. You have {tasks.length} task{tasks.length !== 1 ? 's' : ''} assigned.
-            </p>
-          </div>
-
-          {/* Progress overview */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            {(['pending', 'in_progress', 'completed'] as const).map(status => (
-              <div key={status} className="card">
-                <p className="page-title">{tasks.filter(t => t.status === status).length}</p>
-                <p className="text-sm text-gray-400 mt-1 capitalize">{status.replace('_', ' ')}</p>
-              </div>
-            ))}
-          </div>
-
+        <div className="animate-slide-in h-[calc(100vh-8rem)]">
+          
           {loading ? (
-            <div className="text-center py-12 text-gray-500">Loading your tasks...</div>
-          ) : tasks.length === 0 ? (
-            <div className="card text-center py-10">
-              <p className="text-gray-400">No tasks assigned to you yet.</p>
-              <p className="text-gray-600 text-sm mt-1">Check back later or contact your admin.</p>
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="w-5 h-5 border-2 border-gray-600 border-t-gray-400 rounded-full animate-spin mr-3" />
+              Loading your tasks...
             </div>
           ) : (
-            <div className="grid gap-4">
-              {tasks.map((task) => (
-                <div key={task.id} className="card hover:border-gray-700 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedTask(task)}>
-                      <h3 className="font-semibold text-white">{task.title}</h3>
-                      {task.description && (
-                        <p className="text-sm text-gray-400 mt-1 line-clamp-2">{task.description}</p>
-                      )}
-                      <p className="text-xs text-gray-600 mt-2">
-                        Client: {task.client?.name ?? `#${task.client_id}`}
-                      </p>
-                    </div>
-
-                    {/* Status update dropdown — workers' primary action */}
-                    <div className="shrink-0">
-                      <label className="label text-xs mb-1">Update Status</label>
-                      <select
-                        value={task.status}
-                        disabled={updatingId === task.id}
-                        onChange={e => handleStatusChange(task.id, e.target.value as TaskStatus)}
-                        className="input text-xs py-1.5 w-36"
-                      >
-                        {STATUS_OPTIONS.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                      {updatingId === task.id && (
-                        <p className="text-xs text-brand-400 mt-1">Saving...</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <KanbanBoard 
+              tasks={tasks} 
+              onTaskClick={setSelectedTask} 
+              // No onNewTaskClick for workers
+            />
           )}
 
-          {/* Task detail modal */}
-          {selectedTask && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-              onClick={() => setSelectedTask(null)}>
-              <div className="card w-full max-w-lg animate-slide-in" onClick={e => e.stopPropagation()}>
-                <div className="flex items-start justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-white pr-4">{selectedTask.title}</h2>
+          <SlideOver 
+            isOpen={!!selectedTask} 
+            onClose={() => setSelectedTask(null)} 
+            title="Task Details"
+          >
+            {selectedTask && (
+              <div className="space-y-6">
+                
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="text-xl font-bold text-white leading-tight">{selectedTask.title}</h3>
                   <span className={`badge ${statusColors[selectedTask.status]} shrink-0`}>
                     {selectedTask.status.replace('_', ' ')}
                   </span>
                 </div>
+                
                 {selectedTask.description && (
-                  <p className="text-gray-300 text-sm mb-4">{selectedTask.description}</p>
-                )}
-                <div className="border-t border-gray-800 pt-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Client</span>
-                    <span className="text-white">{selectedTask.client?.name ?? `#${selectedTask.client_id}`}</span>
+                  <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                    {selectedTask.description}
                   </div>
-                  <div className="flex justify-between">
+                )}
+                
+                <div className="space-y-3 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Client</span>
+                    <span className="text-white font-medium">{selectedTask.client?.name ?? `#${selectedTask.client_id}`}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-500">Created</span>
                     <span className="text-white">{new Date(selectedTask.created_at).toLocaleString()}</span>
                   </div>
                 </div>
 
-                {/* Status update inside modal too */}
-                <div className="mt-5 pt-4 border-t border-gray-800">
-                  <label className="label mb-2">Update Status</label>
-                  <select
-                    value={selectedTask.status}
-                    disabled={updatingId === selectedTask.id}
-                    onChange={e => handleStatusChange(selectedTask.id, e.target.value as TaskStatus)}
-                    className="input py-2 w-full"
-                  >
-                    {STATUS_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                  {updatingId === selectedTask.id && (
-                    <p className="text-xs text-brand-400 mt-2">Saving...</p>
-                  )}
+                <div className="pt-6 mt-6 border-t border-white/[0.06]">
+                  <label className="label mb-3">Update Status</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {STATUS_OPTIONS.map(opt => {
+                      const isActive = selectedTask.status === opt.value
+                      return (
+                        <button
+                          key={opt.value}
+                          disabled={updatingId === selectedTask.id || isActive}
+                          onClick={() => handleStatusChange(selectedTask.id, opt.value)}
+                          className={`w-full flex items-center justify-between p-3 rounded-xl border text-sm font-medium transition-all ${
+                            isActive 
+                              ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-300 cursor-default' 
+                              : 'bg-white/[0.02] border-white/[0.06] text-gray-400 hover:bg-white/[0.04] hover:text-white'
+                          }`}
+                        >
+                          {opt.label}
+                          {updatingId === selectedTask.id && selectedTask.status !== opt.value && (
+                            <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          )}
+                          {isActive && (
+                            <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
-                <button onClick={() => setSelectedTask(null)} className="btn-secondary w-full mt-4">Close</button>
+                <div className="pt-6 mt-6 border-t border-white/[0.06]">
+                  <button onClick={() => setSelectedTask(null)} className="btn-secondary w-full">Close Panel</button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </SlideOver>
+
         </div>
       </DashboardLayout>
     </AuthGuard>
