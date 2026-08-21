@@ -12,9 +12,7 @@ class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Authorization is handled in the controller via Policy.
-        // FormRequest authorization is a second layer — here we trust the middleware did its job.
-        return true;
+        return $this->user()->can('create', \App\Models\User::class);
     }
 
     public function rules(): array

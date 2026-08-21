@@ -150,6 +150,9 @@ class AuthTest extends TestCase
         // Logout
         $this->withHeaders($headers)->postJson('/api/auth/logout');
 
+        // Clear the cached user from the Auth guard so the next request actually checks the token
+        auth()->forgetGuards();
+
         // Try to use the same token — should now be invalid
         $response = $this->withHeaders($headers)->getJson('/api/auth/me');
         $response->assertStatus(401);
