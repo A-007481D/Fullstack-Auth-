@@ -71,8 +71,6 @@ services:
       # Keep vendor/ inside container (not overwritten by the mount)
       - backend_vendor:/var/www/html/vendor
       - backend_storage:/var/www/html/storage
-    ports:
-      - "8000:8000"
 
   # ── Next.js Frontend ────────────────────────────────────────────
   frontend:
