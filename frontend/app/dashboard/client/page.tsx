@@ -122,111 +122,111 @@ export default function ClientDashboardPage() {
             />
           )}
 
-          {/* New Task SlideOver */}
-          <SlideOver 
-            isOpen={showForm} 
-            onClose={() => setShowForm(false)} 
-            title="New Task Request"
-          >
-            {formError && (
-              <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{formError}</div>
-            )}
-            <form onSubmit={handleCreateTask} className="space-y-5">
+        </div>
+
+        {/* New Task SlideOver */}
+        <SlideOver 
+          isOpen={showForm} 
+          onClose={() => setShowForm(false)} 
+          title="New Task Request"
+        >
+          {formError && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{formError}</div>
+          )}
+          <form onSubmit={handleCreateTask} className="space-y-5">
+            <div>
+              <label className="label">Task Title</label>
+              <input className="input" value={formData.title} required
+                placeholder="Describe what you need done..."
+                onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Details (optional)</label>
+              <textarea className="input min-h-[160px] resize-none" value={formData.description}
+                placeholder="Add any additional context..."
+                onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} />
+            </div>
+            <div className="pt-6 mt-6 border-t border-white/[0.06] flex gap-3">
+              <button type="button" onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancel</button>
+              <button type="submit" disabled={saving} className="btn-primary flex-1">
+                {saving ? 'Submitting...' : 'Submit Request'}
+              </button>
+            </div>
+          </form>
+        </SlideOver>
+
+        {/* View/Edit Task SlideOver */}
+        <SlideOver 
+          isOpen={!!selectedTask} 
+          onClose={() => setSelectedTask(null)} 
+          title={editMode ? "Edit Task" : "Task Details"}
+        >
+          {selectedTask && !editMode && (
+            <div className="space-y-6">
+              <div className="flex items-start justify-between gap-4">
+                <h3 className="text-xl font-bold text-white leading-tight">{selectedTask.title}</h3>
+                <span className={`badge ${statusColors[selectedTask.status]} shrink-0`}>
+                  {selectedTask.status.replace('_', ' ')}
+                </span>
+              </div>
+              
+              {selectedTask.description && (
+                <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                  {selectedTask.description}
+                </div>
+              )}
+              
+              <div className="space-y-3 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Assigned worker</span>
+                  <span className="text-white font-medium">
+                    {selectedTask.worker ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-[9px] font-bold text-white shadow-sm">
+                          {selectedTask.worker.name.charAt(0).toUpperCase()}
+                        </div>
+                        {selectedTask.worker.name}
+                      </div>
+                    ) : 'Not yet assigned'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Created</span>
+                  <span className="text-white">{new Date(selectedTask.created_at).toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-white/[0.06] flex gap-3">
+                <button onClick={() => setEditMode(true)} className="btn-primary flex-1">Edit Details</button>
+                <button onClick={() => setSelectedTask(null)} className="btn-secondary flex-1">Close</button>
+              </div>
+            </div>
+          )}
+
+          {selectedTask && editMode && (
+            <form onSubmit={handleUpdateTask} className="space-y-5">
+              {formError && (
+                <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{formError}</div>
+              )}
               <div>
                 <label className="label">Task Title</label>
                 <input className="input" value={formData.title} required
-                  placeholder="Describe what you need done..."
                   onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} />
               </div>
               <div>
                 <label className="label">Details (optional)</label>
                 <textarea className="input min-h-[160px] resize-none" value={formData.description}
-                  placeholder="Add any additional context..."
                   onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} />
               </div>
               <div className="pt-6 mt-6 border-t border-white/[0.06] flex gap-3">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancel</button>
+                <button type="button" onClick={() => setEditMode(false)} className="btn-secondary flex-1">Cancel</button>
                 <button type="submit" disabled={saving} className="btn-primary flex-1">
-                  {saving ? 'Submitting...' : 'Submit Request'}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
-          </SlideOver>
-
-          {/* View/Edit Task SlideOver */}
-          <SlideOver 
-            isOpen={!!selectedTask} 
-            onClose={() => setSelectedTask(null)} 
-            title={editMode ? "Edit Task" : "Task Details"}
-          >
-            {selectedTask && !editMode && (
-              <div className="space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-xl font-bold text-white leading-tight">{selectedTask.title}</h3>
-                  <span className={`badge ${statusColors[selectedTask.status]} shrink-0`}>
-                    {selectedTask.status.replace('_', ' ')}
-                  </span>
-                </div>
-                
-                {selectedTask.description && (
-                  <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                    {selectedTask.description}
-                  </div>
-                )}
-                
-                <div className="space-y-3 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Assigned worker</span>
-                    <span className="text-white font-medium">
-                      {selectedTask.worker ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-[9px] font-bold text-white shadow-sm">
-                            {selectedTask.worker.name.charAt(0).toUpperCase()}
-                          </div>
-                          {selectedTask.worker.name}
-                        </div>
-                      ) : 'Not yet assigned'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Created</span>
-                    <span className="text-white">{new Date(selectedTask.created_at).toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <div className="pt-6 mt-6 border-t border-white/[0.06] flex gap-3">
-                  <button onClick={() => setEditMode(true)} className="btn-primary flex-1">Edit Details</button>
-                  <button onClick={() => setSelectedTask(null)} className="btn-secondary flex-1">Close</button>
-                </div>
-              </div>
-            )}
-
-            {selectedTask && editMode && (
-              <form onSubmit={handleUpdateTask} className="space-y-5">
-                {formError && (
-                  <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{formError}</div>
-                )}
-                <div>
-                  <label className="label">Task Title</label>
-                  <input className="input" value={formData.title} required
-                    onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="label">Details (optional)</label>
-                  <textarea className="input min-h-[160px] resize-none" value={formData.description}
-                    onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} />
-                </div>
-                <div className="pt-6 mt-6 border-t border-white/[0.06] flex gap-3">
-                  <button type="button" onClick={() => setEditMode(false)} className="btn-secondary flex-1">Cancel</button>
-                  <button type="submit" disabled={saving} className="btn-primary flex-1">
-                    {saving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </SlideOver>
-
-        </div>
+          )}
+        </SlideOver>
       </DashboardLayout>
     </AuthGuard>
   )

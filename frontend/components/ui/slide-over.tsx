@@ -1,4 +1,7 @@
-import React, { useEffect } from 'react'
+'use client'
+
+import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 interface SlideOverProps {
   isOpen: boolean
@@ -8,20 +11,23 @@ interface SlideOverProps {
 }
 
 export function SlideOver({ isOpen, onClose, title, children }: SlideOverProps) {
+  const [mounted, setMounted] = useState(false)
+
   // Prevent body scroll when open
   useEffect(() => {
+    setMounted(true)
     if (isOpen) document.body.style.overflow = 'hidden'
     else document.body.style.overflow = ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
 
-  return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex justify-end">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity animate-fade-in"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"
         onClick={onClose}
       />
       
@@ -46,6 +52,7 @@ export function SlideOver({ isOpen, onClose, title, children }: SlideOverProps) 
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

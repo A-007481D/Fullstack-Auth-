@@ -81,77 +81,76 @@ export default function WorkerDashboardPage() {
             />
           )}
 
-          <SlideOver 
-            isOpen={!!selectedTask} 
-            onClose={() => setSelectedTask(null)} 
-            title="Task Details"
-          >
-            {selectedTask && (
-              <div className="space-y-6">
-                
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-xl font-bold text-white leading-tight">{selectedTask.title}</h3>
-                  <span className={`badge ${statusColors[selectedTask.status]} shrink-0`}>
-                    {selectedTask.status.replace('_', ' ')}
-                  </span>
+        </div>
+        <SlideOver 
+          isOpen={!!selectedTask} 
+          onClose={() => setSelectedTask(null)} 
+          title="Task Details"
+        >
+          {selectedTask && (
+            <div className="space-y-6">
+              
+              <div className="flex items-start justify-between gap-4">
+                <h3 className="text-xl font-bold text-white leading-tight">{selectedTask.title}</h3>
+                <span className={`badge ${statusColors[selectedTask.status]} shrink-0`}>
+                  {selectedTask.status.replace('_', ' ')}
+                </span>
+              </div>
+              
+              {selectedTask.description && (
+                <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                  {selectedTask.description}
                 </div>
-                
-                {selectedTask.description && (
-                  <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                    {selectedTask.description}
-                  </div>
-                )}
-                
-                <div className="space-y-3 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Client</span>
-                    <span className="text-white font-medium">{selectedTask.client?.name ?? `#${selectedTask.client_id}`}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Created</span>
-                    <span className="text-white">{new Date(selectedTask.created_at).toLocaleString()}</span>
-                  </div>
+              )}
+              
+              <div className="space-y-3 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Client</span>
+                  <span className="text-white font-medium">{selectedTask.client?.name ?? `#${selectedTask.client_id}`}</span>
                 </div>
-
-                <div className="pt-6 mt-6 border-t border-white/[0.06]">
-                  <label className="label mb-3">Update Status</label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {STATUS_OPTIONS.map(opt => {
-                      const isActive = selectedTask.status === opt.value
-                      return (
-                        <button
-                          key={opt.value}
-                          disabled={updatingId === selectedTask.id || isActive}
-                          onClick={() => handleStatusChange(selectedTask.id, opt.value)}
-                          className={`w-full flex items-center justify-between p-3 rounded-xl border text-sm font-medium transition-all ${
-                            isActive 
-                              ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-300 cursor-default' 
-                              : 'bg-white/[0.02] border-white/[0.06] text-gray-400 hover:bg-white/[0.04] hover:text-white'
-                          }`}
-                        >
-                          {opt.label}
-                          {updatingId === selectedTask.id && selectedTask.status !== opt.value && (
-                            <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          )}
-                          {isActive && (
-                            <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div className="pt-6 mt-6 border-t border-white/[0.06]">
-                  <button onClick={() => setSelectedTask(null)} className="btn-secondary w-full">Close Panel</button>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Created</span>
+                  <span className="text-white">{new Date(selectedTask.created_at).toLocaleString()}</span>
                 </div>
               </div>
-            )}
-          </SlideOver>
 
-        </div>
+              <div className="pt-6 mt-6 border-t border-white/[0.06]">
+                <label className="label mb-3">Update Status</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {STATUS_OPTIONS.map(opt => {
+                    const isActive = selectedTask.status === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        disabled={updatingId === selectedTask.id || isActive}
+                        onClick={() => handleStatusChange(selectedTask.id, opt.value)}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl border text-sm font-medium transition-all ${
+                          isActive 
+                            ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-300 cursor-default' 
+                            : 'bg-white/[0.02] border-white/[0.06] text-gray-400 hover:bg-white/[0.04] hover:text-white'
+                        }`}
+                      >
+                        {opt.label}
+                        {updatingId === selectedTask.id && selectedTask.status !== opt.value && (
+                          <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        )}
+                        {isActive && (
+                          <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-white/[0.06]">
+                <button onClick={() => setSelectedTask(null)} className="btn-secondary w-full">Close Panel</button>
+              </div>
+            </div>
+          )}
+        </SlideOver>
       </DashboardLayout>
     </AuthGuard>
   )

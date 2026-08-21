@@ -132,81 +132,80 @@ export default function AdminTasksPage() {
             />
           )}
 
-          <SlideOver 
-            isOpen={showForm} 
-            onClose={() => setShowForm(false)} 
-            title={editTask ? 'Edit Task' : 'New Task'}
-          >
-            {formError && (
-              <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{formError}</div>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="label">Title</label>
-                <input className="input" value={formData.title}
-                  onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} required />
-              </div>
-              
-              <div>
-                <label className="label">Description</label>
-                <textarea className="input min-h-[120px] resize-none" value={formData.description}
-                  onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} />
-              </div>
-              
-              <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl space-y-4">
-                <div>
-                  <label className="label">Status</label>
-                  <select className="input" value={formData.status}
-                    onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}>
-                    {STATUS_OPTIONS.map(s => (
-                      <option key={s} value={s} className="bg-gray-900">{s.replace('_', ' ')}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="label">Assign Worker</label>
-                  <select className="input" value={formData.worker_id}
-                    onChange={e => setFormData(p => ({ ...p, worker_id: e.target.value }))}>
-                    <option value="" className="bg-gray-900">Unassigned</option>
-                    {workers.map(w => <option key={w.id} value={w.id} className="bg-gray-900">{w.name}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="label">Client</label>
-                  <select className="input" value={formData.client_id}
-                    onChange={e => setFormData(p => ({ ...p, client_id: e.target.value }))} required={!editTask}>
-                    <option value="" className="bg-gray-900">Select client...</option>
-                    {clients.map(c => <option key={c.id} value={c.id} className="bg-gray-900">{c.name}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="pt-6 mt-6 border-t border-white/[0.06] flex items-center justify-between">
-                {editTask && (
-                  <button 
-                    type="button" 
-                    onClick={() => handleDelete(editTask.id)} 
-                    className="btn-danger"
-                  >
-                    Delete
-                  </button>
-                )}
-                
-                <div className="flex gap-3 ml-auto">
-                  <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">
-                    Cancel
-                  </button>
-                  <button type="submit" disabled={saving} className="btn-primary">
-                    {saving ? 'Saving...' : (editTask ? 'Save Changes' : 'Create Task')}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </SlideOver>
-
         </div>
+        <SlideOver 
+          isOpen={showForm} 
+          onClose={() => setShowForm(false)} 
+          title={editTask ? 'Edit Task' : 'New Task'}
+        >
+          {formError && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{formError}</div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="label">Title</label>
+              <input className="input" value={formData.title}
+                onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} required />
+            </div>
+            
+            <div>
+              <label className="label">Description</label>
+              <textarea className="input min-h-[120px] resize-none" value={formData.description}
+                onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} />
+            </div>
+            
+            <div className="p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl space-y-4">
+              <div>
+                <label className="label">Status</label>
+                <select className="input" value={formData.status}
+                  onChange={e => setFormData(p => ({ ...p, status: e.target.value }))}>
+                  {STATUS_OPTIONS.map(s => (
+                    <option key={s} value={s} className="bg-gray-900">{s.replace('_', ' ')}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="label">Assign Worker</label>
+                <select className="input" value={formData.worker_id}
+                  onChange={e => setFormData(p => ({ ...p, worker_id: e.target.value }))}>
+                  <option value="" className="bg-gray-900">Unassigned</option>
+                  {workers.map(w => <option key={w.id} value={w.id} className="bg-gray-900">{w.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="label">Client</label>
+                <select className="input" value={formData.client_id}
+                  onChange={e => setFormData(p => ({ ...p, client_id: e.target.value }))} required={!editTask}>
+                  <option value="" className="bg-gray-900">Select client...</option>
+                  {clients.map(c => <option key={c.id} value={c.id} className="bg-gray-900">{c.name}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-white/[0.06] flex items-center justify-between">
+              {editTask && (
+                <button 
+                  type="button" 
+                  onClick={() => handleDelete(editTask.id)} 
+                  className="btn-danger"
+                >
+                  Delete
+                </button>
+              )}
+              
+              <div className="flex gap-3 ml-auto">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving} className="btn-primary">
+                  {saving ? 'Saving...' : (editTask ? 'Save Changes' : 'Create Task')}
+                </button>
+              </div>
+            </div>
+          </form>
+        </SlideOver>
       </DashboardLayout>
     </AuthGuard>
   )
