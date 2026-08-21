@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * UserPolicy::before() grants admins full access.
  * Non-admins get HTTP 403 before any business logic runs.
  */
-class UserController extends Controller
+class UserController
 {
     /**
      * GET /api/users

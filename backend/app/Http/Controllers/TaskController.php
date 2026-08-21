@@ -21,7 +21,7 @@ use Illuminate\Http\Request;
  * - Query scoping handles the "what do I see?" question.
  * Both are needed — you can't just hide data, you must also enforce per-resource access.
  */
-class TaskController extends Controller
+class TaskController
 {
     /**
      * GET /api/tasks

@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Auth;
  * - Simpler setup — no key pairs, no expiry juggling.
  * - Ideal for SPA + REST API architecture.
  */
-class AuthController extends Controller
+class AuthController
 {
     /**
      * POST /api/auth/login
