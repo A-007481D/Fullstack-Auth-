@@ -96,10 +96,12 @@ cp .env.example .env
 # 3. Build and start all services
 docker compose up --build
 
+# 4. Seed the database (first time only)
+docker compose exec backend php artisan migrate:fresh --seed
+
 # Application is ready at:
 #   Frontend  → http://localhost:3000
-#   Backend   → http://localhost:8000
-#   API       → http://localhost:8000/api
+#   API       → http://localhost:3000/api  (proxied via Next.js rewrite → backend)
 ```
 
 > The backend container automatically runs migrations and seeds on first start.
@@ -136,8 +138,14 @@ SANCTUM_STATEFUL_DOMAINS=localhost:3000
 
 ### Frontend `frontend/.env.local`
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+# Only needed for local (non-Docker) development.
+# In Docker, this is set at build time via docker-compose.yml build args.
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
 ```
+
+> **Note:** In Docker, the Next.js app proxies all `/api/*` requests internally
+> to the backend container (`http://backend:8000/api/*`) via `next.config.mjs` rewrites.
+> The backend port (8000) is **not** exposed on the host — all traffic goes through port 3000.
 
 ---
 
@@ -173,9 +181,6 @@ docker compose exec backend php artisan test
 # Run a specific test class
 docker compose exec backend php artisan test --filter AuthTest
 docker compose exec backend php artisan test --filter TaskAuthorizationTest
-
-# Run with verbose output
-docker compose exec backend php artisan test --verbose
 ```
 
 **Test coverage:**
@@ -315,3 +320,60 @@ This project follows **GitHub Flow**:
 - Each branch represents one logical feature
 - PRs merge into `main` after review
 - Meaningful, atomic commits with conventional commit messages
+
+---
+
+## How to Run the Frontend
+
+### Via Docker (recommended)
+```bash
+# The frontend starts automatically with docker compose up --build
+# Visit → http://localhost:3000
+docker compose up frontend
+```
+
+### Local development (without Docker)
+```bash
+cd frontend
+cp .env.example .env.local   # Edit NEXT_PUBLIC_API_URL if needed
+npm install
+npm run dev
+# Starts at → http://localhost:3000
+```
+
+---
+
+## How to Run the Backend
+
+### Via Docker (recommended)
+```bash
+# The backend starts automatically with docker compose up --build
+# API is accessible at → http://localhost:3000/api (proxied through Next.js)
+docker compose up backend
+```
+
+### Local development (without Docker)
+```bash
+cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+# Configure your local DB in .env, then:
+php artisan migrate --seed
+php artisan serve
+# API at → http://localhost:8000/api
+```
+
+---
+
+## What I Would Improve With More Time
+
+- **Email verification** on user creation
+- **Pagination** on task and user list endpoints for scalability
+- **Rate limiting** on the login endpoint to prevent brute-force attacks
+- **Refresh token** mechanism — currently tokens don't expire; adding expiry + refresh would improve security
+- **Audit log** — track who changed what and when on tasks and users
+- **Worker self-registration flow** — currently seeder-only, could add invite-by-email
+- **E2E tests** with Playwright/Cypress for the frontend flows
+- **CI/CD pipeline** — GitHub Actions already added for test runs; extend to build and push Docker images on release
+- **Production hardening** — `APP_DEBUG=false`, proper secrets management (e.g. Docker secrets or Vault), HTTPS enforcement
