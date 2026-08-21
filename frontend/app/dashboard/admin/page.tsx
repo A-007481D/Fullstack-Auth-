@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import DashboardLayout from '@/components/layout/dashboard-layout'
 import AuthGuard from '@/components/auth-guard'
 import apiClient from '@/lib/api'
-import type { User, Task, UsersResponse, TasksResponse } from '@/types'
+import type { User, UsersResponse } from '@/types'
 
 // ── SVG Icon helpers ──────────────────────────────────────────────
 const UsersIcon = () => (
@@ -29,13 +29,15 @@ const navItems = [
 // User Management Section
 // ─────────────────────────────────────────────────────────────────
 function UsersSection() {
-  const [users,     setUsers]     = useState<User[]>([])
-  const [loading,   setLoading]   = useState(true)
-  const [showForm,  setShowForm]  = useState(false)
-  const [editUser,  setEditUser]  = useState<User | null>(null)
-  const [formData,  setFormData]  = useState({ name: '', email: '', password: '', role: 'client' })
-  const [formError, setFormError] = useState<string | null>(null)
-  const [saving,    setSaving]    = useState(false)
+  const [users,      setUsers]      = useState<User[]>([])
+  const [loading,    setLoading]    = useState(true)
+  const [showForm,   setShowForm]   = useState(false)
+  const [editUser,   setEditUser]   = useState<User | null>(null)
+  const [formData,   setFormData]   = useState({ name: '', email: '', password: '', role: 'client' })
+  const [formError,  setFormError]  = useState<string | null>(null)
+  const [saving,     setSaving]     = useState(false)
+  // Role filter: drives "View all users / clients / workers" requirement from brief
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'client' | 'worker'>('all')
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -74,7 +76,11 @@ function UsersSection() {
     setSaving(true)
     setFormError(null)
     try {
-      const payload: Record<string, string> = { name: formData.name, email: formData.email, role: formData.role }
+      const payload: Record<string, string> = {
+        name:  formData.name,
+        email: formData.email,
+        role:  formData.role,
+      }
       if (formData.password) payload.password = formData.password
 
       if (editUser) {
@@ -92,6 +98,23 @@ function UsersSection() {
     }
   }
 
+  // Derive filtered list from the active tab — pure frontend filter, data already fetched
+  const filteredUsers = roleFilter === 'all'
+    ? users
+    : users.filter(u => u.role === roleFilter)
+
+  const filterTabs: { key: typeof roleFilter; label: string }[] = [
+    { key: 'all',    label: 'All Users' },
+    { key: 'admin',  label: 'Admins' },
+    { key: 'client', label: 'Clients' },
+    { key: 'worker', label: 'Workers' },
+  ]
+
+  const tableHeading =
+    roleFilter === 'all'
+      ? `All Users (${users.length})`
+      : `${roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1)}s (${filteredUsers.length})`
+
   return (
     <div className="animate-slide-in">
       <div className="flex items-center justify-between mb-6">
@@ -107,23 +130,39 @@ function UsersSection() {
         </button>
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {(['admin', 'client', 'worker'] as const).map((role) => (
-          <div key={role} className="card flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center">
-              <UsersIcon />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-white">{users.filter(u => u.role === role).length}</p>
-              <p className="text-xs text-gray-400 capitalize">{role}s</p>
-            </div>
-          </div>
-        ))}
+      {/*
+        Role filter tabs — clicking each tab satisfies:
+          "View all users"   → All Users tab
+          "View all clients" → Clients tab
+          "View all workers" → Workers tab
+        (brief §3: Admin Permissions)
+      */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        {filterTabs.map(({ key, label }) => {
+          const count = key === 'all' ? users.length : users.filter(u => u.role === key).length
+          const isActive = roleFilter === key
+          return (
+            <button
+              key={key}
+              onClick={() => setRoleFilter(key)}
+              className={`card text-left transition-all duration-150 border-2 ${
+                isActive
+                  ? 'border-brand-500 bg-brand-600/10'
+                  : 'border-transparent hover:border-gray-700 cursor-pointer'
+              }`}
+            >
+              <p className={`text-2xl font-bold ${isActive ? 'text-brand-400' : 'text-white'}`}>{count}</p>
+              <p className={`text-xs mt-1 ${isActive ? 'text-brand-300' : 'text-gray-400'}`}>{label}</p>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Users table */}
+      {/* Users table — filtered by the active role tab */}
       <div className="table-container">
+        <div className="flex items-center px-4 py-3 border-b border-gray-800">
+          <p className="text-sm font-medium text-gray-300">{tableHeading}</p>
+        </div>
         <table className="table">
           <thead>
             <tr>
@@ -133,9 +172,13 @@ function UsersSection() {
           <tbody>
             {loading ? (
               <tr><td colSpan={5} className="text-center py-8 text-gray-500">Loading users...</td></tr>
-            ) : users.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-500">No users found.</td></tr>
-            ) : users.map((user) => (
+            ) : filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-8 text-gray-500">
+                  No {roleFilter === 'all' ? '' : roleFilter + ' '}users found.
+                </td>
+              </tr>
+            ) : filteredUsers.map((user) => (
               <tr key={user.id}>
                 <td className="font-medium text-white">{user.name}</td>
                 <td>{user.email}</td>
