@@ -4,9 +4,14 @@ const nextConfig = {
   // This is what enables the minimal Docker image (Stage 3 in Dockerfile)
   output: 'standalone',
 
-  // Environment variable available in the browser (NEXT_PUBLIC_ prefix required)
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api',
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        // Route API requests internally to the backend Docker service
+        destination: 'http://backend:8000/api/:path*',
+      },
+    ]
   },
 }
 
