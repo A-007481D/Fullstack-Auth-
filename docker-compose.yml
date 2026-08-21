@@ -1,0 +1,105 @@
+# ─────────────────────────────────────────────────────────────────
+# Docker Compose — Task Management Application
+# ─────────────────────────────────────────────────────────────────
+#
+# Services:
+#   postgres  — PostgreSQL 16 database
+#   backend   — Laravel 11 API (PHP-FPM + Nginx)
+#   frontend  — Next.js 14 application
+#
+# Usage:
+#   docker compose up --build          # Build and start all services
+#   docker compose up -d               # Run in detached (background) mode
+#   docker compose down                # Stop and remove containers
+#   docker compose exec backend php artisan migrate:fresh --seed
+#   docker compose exec backend php artisan test
+#
+# ─────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: taskmanagement_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_DATABASE:-taskmanagement}
+      POSTGRES_USER:     ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      # Named volume — data persists across container restarts
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Expose to host for DB GUI tools (TablePlus, DBeaver, etc.)
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-taskmanagement}"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+
+  # ── Laravel Backend ─────────────────────────────────────────────
+  backend:
+    build:
+      context:    ./backend
+      dockerfile: Dockerfile
+    container_name: taskmanagement_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy   # Wait for PG health check to pass
+    environment:
+      APP_NAME:     "Task Management"
+      APP_ENV:      local
+      APP_DEBUG:    "true"
+      APP_URL:      http://localhost:8000
+
+      DB_CONNECTION: pgsql
+      DB_HOST:       postgres         # Service name = hostname in Docker network
+      DB_PORT:       5432
+      DB_DATABASE:   ${DB_DATABASE:-taskmanagement}
+      DB_USERNAME:   ${DB_USERNAME:-postgres}
+      DB_PASSWORD:   ${DB_PASSWORD:-secret}
+
+      CACHE_STORE:      database
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER:   cookie
+
+      FRONTEND_URL:               http://localhost:3000
+      SANCTUM_STATEFUL_DOMAINS:   localhost:3000
+    volumes:
+      # Mount source code for development hot-reloading
+      - ./backend:/var/www/html
+      # Keep vendor/ inside container (not overwritten by the mount)
+      - backend_vendor:/var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+    ports:
+      - "8000:8000"
+
+  # ── Next.js Frontend ────────────────────────────────────────────
+  frontend:
+    build:
+      context:    ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Passed at build time — baked into the Next.js bundle
+        NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    container_name: taskmanagement_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV:            production
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    ports:
+      - "3000:3000"
+
+# ── Named Volumes ────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  backend_vendor:
+    driver: local
+  backend_storage:
+    driver: local
