@@ -17,14 +17,14 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, json
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, sqlite3, dom, filter, gd, json, fileinfo, curl, openssl, tokenizer
           
       - name: Copy .env
         run: cp backend/.env.example backend/.env
         
       - name: Install Dependencies
         working-directory: ./backend
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
         
       - name: Generate key
         working-directory: ./backend
