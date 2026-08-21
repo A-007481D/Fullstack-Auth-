@@ -117,10 +117,10 @@ function UsersSection() {
 
   return (
     <div className="animate-slide-in">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">User Management</h1>
-          <p className="text-gray-400 text-sm mt-1">Create, update and manage all system users</p>
+          <h1 className="page-title">User Management</h1>
+          <p className="page-subtitle">Create, update and manage all system users</p>
         </div>
         <button onClick={openCreate} className="btn-primary">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -130,13 +130,7 @@ function UsersSection() {
         </button>
       </div>
 
-      {/*
-        Role filter tabs — clicking each tab satisfies:
-          "View all users"   → All Users tab
-          "View all clients" → Clients tab
-          "View all workers" → Workers tab
-        (brief §3: Admin Permissions)
-      */}
+      {/* Role filter tabs */}
       <div className="grid grid-cols-4 gap-3 mb-6">
         {filterTabs.map(({ key, label }) => {
           const count = key === 'all' ? users.length : users.filter(u => u.role === key).length
@@ -145,14 +139,14 @@ function UsersSection() {
             <button
               key={key}
               onClick={() => setRoleFilter(key)}
-              className={`card text-left transition-all duration-150 border-2 ${
+              className={`stat-card text-left transition-all duration-150 border-2 ${
                 isActive
-                  ? 'border-brand-500 bg-brand-600/10'
-                  : 'border-transparent hover:border-gray-700 cursor-pointer'
+                  ? 'border-indigo-500/40 bg-indigo-600/5'
+                  : 'border-transparent hover:border-white/[0.1] cursor-pointer'
               }`}
             >
-              <p className={`text-2xl font-bold ${isActive ? 'text-brand-400' : 'text-white'}`}>{count}</p>
-              <p className={`text-xs mt-1 ${isActive ? 'text-brand-300' : 'text-gray-400'}`}>{label}</p>
+              <p className={`text-2xl font-bold ${isActive ? 'text-indigo-300' : 'text-white'}`}>{count}</p>
+              <p className={`text-xs mt-1 font-medium ${isActive ? 'text-indigo-400' : 'text-gray-500'}`}>{label}</p>
             </button>
           )
         })}

@@ -115,8 +115,8 @@ export default function AdminTasksPage() {
         <div className="animate-slide-in">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-white">Task Management</h1>
-              <p className="text-gray-400 text-sm mt-1">View, create, and assign all tasks</p>
+              <h1 className="page-title">Task Management</h1>
+              <p className="page-subtitle">View, create, and assign all tasks</p>
             </div>
             <button onClick={openCreate} className="btn-primary">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

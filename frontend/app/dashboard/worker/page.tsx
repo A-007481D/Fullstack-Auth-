@@ -72,8 +72,8 @@ export default function WorkerDashboardPage() {
       <DashboardLayout navItems={navItems} title="Worker Portal">
         <div className="animate-slide-in">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-white">Assigned Tasks</h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <h1 className="page-title">Assigned Tasks</h1>
+            <p className="page-subtitle">
               Hello, {user?.name}. You have {tasks.length} task{tasks.length !== 1 ? 's' : ''} assigned.
             </p>
           </div>
@@ -82,7 +82,7 @@ export default function WorkerDashboardPage() {
           <div className="grid grid-cols-3 gap-4 mb-6">
             {(['pending', 'in_progress', 'completed'] as const).map(status => (
               <div key={status} className="card">
-                <p className="text-2xl font-bold text-white">{tasks.filter(t => t.status === status).length}</p>
+                <p className="page-title">{tasks.filter(t => t.status === status).length}</p>
                 <p className="text-sm text-gray-400 mt-1 capitalize">{status.replace('_', ' ')}</p>
               </div>
             ))}

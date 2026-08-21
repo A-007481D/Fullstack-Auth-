@@ -90,8 +90,8 @@ export default function ClientDashboardPage() {
         <div className="animate-slide-in">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-white">My Tasks</h1>
-              <p className="text-gray-400 text-sm mt-1">Welcome back, {user?.name}. Track your task requests here.</p>
+              <h1 className="page-title">My Tasks</h1>
+              <p className="page-subtitle">Welcome back, {user?.name}. Track your task requests here.</p>
             </div>
             <button onClick={() => { setShowForm(true); setFormError(null) }} className="btn-primary">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,7 +105,7 @@ export default function ClientDashboardPage() {
           <div className="grid grid-cols-3 gap-4 mb-6">
             {(['pending', 'in_progress', 'completed'] as const).map(status => (
               <div key={status} className="card">
-                <p className="text-2xl font-bold text-white">{tasks.filter(t => t.status === status).length}</p>
+                <p className="page-title">{tasks.filter(t => t.status === status).length}</p>
                 <p className="text-sm text-gray-400 mt-1 capitalize">{status.replace('_', ' ')}</p>
               </div>
             ))}
