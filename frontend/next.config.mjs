@@ -1,6 +1,5 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // Standalone output for Docker — bundles only used modules
   // This is what enables the minimal Docker image (Stage 3 in Dockerfile)
   output: 'standalone',
