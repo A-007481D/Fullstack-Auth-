@@ -35,6 +35,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        // Force Laravel to always return JSON for API routes
+        // This prevents 302 redirects to login/referer when validation or auth fails
+        $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request, \Throwable $e) {
+            if ($request->is('api/*')) {
+                return true;
+            }
+            return $request->expectsJson();
+        });
+
         /*
          * Transform authentication exceptions into JSON 401 responses.
          * Without this, Laravel would redirect to /login (HTML) — wrong for an API.
