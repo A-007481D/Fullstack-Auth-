@@ -30,9 +30,6 @@ services:
     volumes:
       # Named volume — data persists across container restarts
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      # Expose to host for DB GUI tools (TablePlus, DBeaver, etc.)
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-taskmanagement}"]
       interval: 10s
